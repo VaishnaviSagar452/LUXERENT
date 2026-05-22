@@ -1,0 +1,38 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Dependencies
+node_modules/
+
+# Vite build output
+dist/
+
+# Vite/React cache and coverage
+coverage/
+.eslintcache
+
+# Environment files (Vite)
+.env
+.env.*
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# (Previously included) SSR/build artifacts if you use them
+dist-ssr
+*.local
+

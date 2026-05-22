@@ -1,0 +1,26 @@
+# Root-level ignores for full-stack repo
+
+# Environment files
+.env
+.env.*
+
+# Node deps (in case installed at root)
+node_modules/
+
+# Editor/OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Build output (in case present at root)
+dist/
+coverage/
+
