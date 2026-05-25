@@ -36,6 +36,10 @@ function Register() {
       setErrorMessage("Please fill in all registration fields.");
       return;
     }
+    if (password.length < 6) {
+      setErrorMessage("Password must be at least 6 characters long.");
+      return;
+    }
     setLoading(true);
     setErrorMessage("");
 
@@ -45,10 +49,12 @@ function Register() {
       navigate("/login", { state: { email } });
     } catch (error) {
       console.error(error);
-      if (error.response?.status === 409 || error.response?.data?.message === "User already exists") {
+      if (error.message === "Network Error") {
+        setErrorMessage("Server is unreachable. Please make sure the backend is running on port 8000.");
+      } else if (error.response?.status === 409 || error.response?.data?.message === "User already exists") {
         setErrorMessage("This email is already registered. Please login instead.");
       } else {
-        setErrorMessage(error.response?.data?.message || "Registration failed. Try a different email.");
+        setErrorMessage(error.response?.data?.message || error.message || "Registration failed. Try a different email.");
       }
     } finally {
       setLoading(false);

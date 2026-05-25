@@ -34,11 +34,11 @@ const BANNER_SLIDES = [
 ];
 
 const BUBBLE_CATEGORIES = [
-  { name: "Lehenga", label: "Lehengas", img: "https://images.unsplash.com/photo-1610030469983-98e550d6193c?w=150&auto=format&fit=crop&q=60" },
-  { name: "Sherwani", label: "Sherwanis", img: "https://images.unsplash.com/photo-1605001011156-cbf0b0f67a51?w=150&auto=format&fit=crop&q=60" },
+  { name: "Lehenga", label: "Lehengas", img: "https://images.cbazaar.com/images/blue-chinon-printed-designer-lehenga-choli-ghsak4286102-u.jpg" },
+  { name: "Sherwani", label: "Sherwanis", img: "https://tse1.mm.bing.net/th/id/OIP.hv1IaWDnNiFiniGYxBIR6QHaLH?r=0&rs=1&pid=ImgDetMain&o=7&rm=3" },
   { name: "Gown", label: "Designer Gowns", img: "https://images.unsplash.com/photo-1566174053879-31528523f8ae?w=150&auto=format&fit=crop&q=60" },
   { name: "Suit", label: "Suits & Tux", img: "https://images.unsplash.com/photo-1594938298603-c8148c4dae35?w=150&auto=format&fit=crop&q=60" },
-  { name: "Saree", label: "Sarees", img: "https://images.unsplash.com/photo-1610030469668-93535c17b6b3?w=150&auto=format&fit=crop&q=60" }
+  { name: "Saree", label: "Sarees", img: "https://images.unsplash.com/photo-1617627143750-d86bc21e42bb?w=150&auto=format&fit=crop&q=60" }
 ];
 
 function Home() {
@@ -51,6 +51,7 @@ function Home() {
 
   // Filters State
   const [selectedCategory, setSelectedCategory] = useState("all");
+  const [selectedGender, setSelectedGender] = useState("all"); // all | men | women
   const [selectedSize, setSelectedSize] = useState("all");
   const [selectedPriceRange, setSelectedPriceRange] = useState("all");
   const [sortBy, setSortBy] = useState("newest"); // newest | price-low | price-high
@@ -59,10 +60,21 @@ function Home() {
   const queryParams = useMemo(() => new URLSearchParams(location.search), [location.search]);
   const searchQuery = queryParams.get("search") || "";
 
-  // Set default category from quick CTA or URL if needed
+  // Set default category and gender from URL if needed
   useEffect(() => {
     const catParam = queryParams.get("category");
-    if (catParam) setSelectedCategory(catParam);
+    if (catParam) {
+      setSelectedCategory(catParam);
+    } else {
+      setSelectedCategory("all");
+    }
+
+    const genderParam = queryParams.get("gender");
+    if (genderParam) {
+      setSelectedGender(genderParam.toLowerCase());
+    } else {
+      setSelectedGender("all");
+    }
   }, [queryParams]);
 
   const fetchDresses = async () => {
@@ -111,6 +123,21 @@ function Home() {
       result = result.filter((d) => (d.category || "").toLowerCase() === selectedCategory.toLowerCase());
     }
 
+    // Gender filter
+    if (selectedGender !== "all") {
+      if (selectedGender === "men") {
+        result = result.filter((d) => {
+          const cat = (d.category || "").toLowerCase();
+          return cat === "sherwani" || cat === "suit";
+        });
+      } else if (selectedGender === "women") {
+        result = result.filter((d) => {
+          const cat = (d.category || "").toLowerCase();
+          return cat === "lehenga" || cat === "gown" || cat === "saree";
+        });
+      }
+    }
+
     // Size filter
     if (selectedSize !== "all") {
       result = result.filter((d) => (d.size || "").toLowerCase() === selectedSize.toLowerCase());
@@ -138,10 +165,11 @@ function Home() {
     }
 
     return result;
-  }, [dresses, searchQuery, selectedCategory, selectedSize, selectedPriceRange, sortBy]);
+  }, [dresses, searchQuery, selectedCategory, selectedGender, selectedSize, selectedPriceRange, sortBy]);
 
   const resetFilters = () => {
     setSelectedCategory("all");
+    setSelectedGender("all");
     setSelectedSize("all");
     setSelectedPriceRange("all");
     setSortBy("newest");
@@ -246,7 +274,7 @@ function Home() {
         <aside className="lg:col-span-1 space-y-6 lg:sticky lg:top-24 h-fit">
           <div className="flex justify-between items-center border-b border-gray-100 pb-3">
             <h3 className="text-sm font-extrabold tracking-wide uppercase text-gray-800">Filters</h3>
-            {(selectedCategory !== "all" || selectedSize !== "all" || selectedPriceRange !== "all") && (
+            {(selectedCategory !== "all" || selectedGender !== "all" || selectedSize !== "all" || selectedPriceRange !== "all") && (
               <button onClick={resetFilters} className="text-[10px] text-pink-600 font-extrabold uppercase hover:underline">
                 Clear All
               </button>
@@ -275,6 +303,38 @@ function Home() {
                     className="accent-pink-600 h-4 w-4"
                   />
                   <span>{cat === "all" ? "All Categories" : cat}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+
+          {/* Gender Selector */}
+          <div>
+            <h4 className="text-xs font-extrabold uppercase tracking-wider text-gray-400 mb-2.5">Gender</h4>
+            <div className="space-y-2">
+              {[
+                { val: "all", label: "All Wear" },
+                { val: "women", label: "Women's Collection" },
+                { val: "men", label: "Men's Collection" }
+              ].map((gen) => (
+                <label key={gen.val} className="flex items-center gap-2.5 text-xs text-gray-600 hover:text-gray-900 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="gender"
+                    checked={selectedGender === gen.val}
+                    onChange={() => {
+                      setSelectedGender(gen.val);
+                      // Clear category selection if it is incompatible with selected gender to prevent empty states
+                      if (gen.val === "men" && ["lehenga", "gown", "saree"].includes(selectedCategory.toLowerCase())) {
+                        setSelectedCategory("all");
+                      }
+                      if (gen.val === "women" && ["sherwani", "suit"].includes(selectedCategory.toLowerCase())) {
+                        setSelectedCategory("all");
+                      }
+                    }}
+                    className="accent-pink-600 h-4 w-4"
+                  />
+                  <span>{gen.label}</span>
                 </label>
               ))}
             </div>

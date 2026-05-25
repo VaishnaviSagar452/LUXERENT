@@ -47,7 +47,11 @@ function Login() {
       }
     } catch (error) {
       console.error(error);
-      setErrorMessage(error.response?.data?.message || "Invalid email or password.");
+      if (error.message === "Network Error") {
+        setErrorMessage("Server is unreachable. Please make sure the backend is running on port 8000.");
+      } else {
+        setErrorMessage(error.response?.data?.message || error.message || "Invalid email or password.");
+      }
     } finally {
       setLoading(false);
     }

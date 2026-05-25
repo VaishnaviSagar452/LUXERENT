@@ -19,6 +19,7 @@ function CustomerDashboard() {
   // Read active tab from URL query params. Default to 'home'
   const activeTab = searchParams.get("tab") || "home";
   const searchQuery = searchParams.get("search") || "";
+  const genderQuery = searchParams.get("gender") || "all";
 
   const [allDresses, setAllDresses] = useState([]);
   const [dressesLoading, setDressesLoading] = useState(true);
@@ -126,7 +127,7 @@ function CustomerDashboard() {
     }
   };
 
-  // Filter local shop elements based on category or search
+  // Filter local shop elements based on category, search, or gender
   const filteredDresses = useMemo(() => {
     let list = [...allDresses];
     if (searchQuery.trim()) {
@@ -138,8 +139,22 @@ function CustomerDashboard() {
         return title.includes(q) || brand.includes(q) || cat.includes(q);
       });
     }
+
+    if (genderQuery !== "all") {
+      if (genderQuery === "men") {
+        list = list.filter((d) => {
+          const cat = (d.category || "").toLowerCase();
+          return cat === "sherwani" || cat === "suit";
+        });
+      } else if (genderQuery === "women") {
+        list = list.filter((d) => {
+          const cat = (d.category || "").toLowerCase();
+          return cat === "lehenga" || cat === "gown" || cat === "saree";
+        });
+      }
+    }
     return list;
-  }, [allDresses, searchQuery]);
+  }, [allDresses, searchQuery, genderQuery]);
 
   // Calculations for Shopping Bag
   const bagSummary = useMemo(() => {

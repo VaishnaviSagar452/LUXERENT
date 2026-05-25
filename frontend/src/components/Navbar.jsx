@@ -1,5 +1,5 @@
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import api from "../services/api";
 
 function Navbar() {
@@ -18,12 +18,26 @@ function Navbar() {
   const [cartCount, setCartCount] = useState(0);
   const [searchVal, setSearchVal] = useState("");
   const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const profileMenuRef = useRef(null);
 
   // Sync search input with URL params
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     setSearchVal(params.get("search") || "");
   }, [location.search]);
+
+  // Close profile menu on outside click
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (profileMenuRef.current && !profileMenuRef.current.contains(event.target)) {
+        setShowProfileMenu(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   const fetchCounts = async () => {
     if (!token || !user) {
@@ -106,7 +120,8 @@ function Navbar() {
   const logout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
-    window.location.href = "/";
+    window.dispatchEvent(new Event("auth-changed"));
+    navigate("/");
   };
 
   return (
@@ -126,8 +141,19 @@ function Navbar() {
             Shop
           </Link>
           <span className="text-gray-200">|</span>
-          <span className="text-gray-400 cursor-not-allowed">Women</span>
-          <span className="text-gray-400 cursor-not-allowed">Men</span>
+          <Link
+            to={`${(user?.role === "customer" || user?.role === "user") ? "/customer" : "/"}?gender=women`}
+            className="hover:text-pink-600 transition"
+          >
+            Women
+          </Link>
+          <Link
+            to={`${(user?.role === "customer" || user?.role === "user") ? "/customer" : "/"}?gender=men`}
+            className="hover:text-pink-600 transition"
+          >
+            Men
+          </Link>
+          <span className="text-gray-200">|</span>
           <span className="text-gray-400 cursor-not-allowed">Designer</span>
         </div>
       </div>
@@ -151,10 +177,9 @@ function Navbar() {
       {/* Action Utilities */}
       <div className="flex items-center gap-6">
         {/* Profile Dropdown */}
-        <div className="relative">
+        <div className="relative" ref={profileMenuRef}>
           <button
             onClick={() => setShowProfileMenu(!showProfileMenu)}
-            onBlur={() => setTimeout(() => setShowProfileMenu(false), 200)}
             className="flex flex-col items-center justify-center text-gray-700 hover:text-pink-600 transition cursor-pointer"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -164,10 +189,13 @@ function Navbar() {
           </button>
 
           {showProfileMenu && (
-            <div className="absolute right-0 mt-3 w-56 bg-white rounded-lg shadow-xl py-3 border border-gray-100 animate-fadeIn text-sm">
+            <div 
+              onClick={() => setShowProfileMenu(false)}
+              className="absolute right-0 mt-3 w-56 bg-white rounded-lg shadow-xl py-3 border border-gray-100 animate-fadeIn text-sm"
+            >
               {user ? (
                 <>
-                  <div className="px-4 py-2 border-b border-gray-100 mb-2">
+                  <div className="px-4 py-2 border-b border-gray-100 mb-2" onClick={(e) => e.stopPropagation()}>
                     <p className="font-bold text-gray-800 truncate">{user.fullname}</p>
                     <p className="text-xs text-gray-400 capitalize truncate mt-0.5">{user.role} Account</p>
                   </div>
